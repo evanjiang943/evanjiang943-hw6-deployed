@@ -1,0 +1,99 @@
+{% extends 'assignments/base.html' %}
+
+{% block title %}{{ assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+        <div>
+            <h2 style="margin-bottom: 0.5rem;">{{ assignment.title }}</h2>
+            <p style="color: #718096;">
+                Created {{ assignment.created_at|date:"F d, Y \a\t g:i A" }}
+            </p>
+        </div>
+        <a href="{% url 'assignment_list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+
+    <div style="background: #f7fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <h3 style="color: #2d3748; margin-bottom: 1rem;">Assignment Details</h3>
+        <p style="color: #4a5568; line-height: 1.8;">{{ assignment.description }}</p>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: #2d3748; margin-bottom: 1rem;">Answer Key</h3>
+        <p>
+            <a href="{{ assignment.answer_key.url }}" target="_blank" 
+               style="color: #4299e1; text-decoration: none; font-weight: 600;">
+                {{ assignment.answer_key.name|slice:"12:" }}
+            </a>
+        </p>
+    </div>
+
+    {% if criteria %}
+    <div class="rubric-preview">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0;">
+                {% if assignment.rubric_type == 'ai_generated' %}
+                    AI-Generated Rubric
+                {% else %}
+                    Uploaded Rubric
+                {% endif %}
+            </h3>
+            <span style="font-size: 1.25rem; font-weight: 600; color: #2d3748;">
+                Total: {{ criteria|length }} criteria
+            </span>
+        </div>
+
+        {% if assignment.rubric_type == 'ai_generated' and assignment.rubric_data %}
+            <div style="background: white; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border: 1px solid #e2e8f0;">
+                <p style="margin-bottom: 0.5rem;">
+                    <strong>Total Points:</strong> {{ assignment.rubric_data.total_points }}
+                </p>
+                <p>
+                    <strong>AI Confidence:</strong> 
+                    <span style="color: #38a169; font-weight: 600;">
+                        {{ assignment.rubric_data.ai_confidence|floatformat:0|add:"0" }}%
+                    </span>
+                </p>
+            </div>
+        {% endif %}
+
+        {% for criterion in criteria %}
+        <div class="criterion">
+            <div class="criterion-header">
+                <span class="criterion-name">{{ criterion.name }}</span>
+                <span class="criterion-points">{{ criterion.points }} pts</span>
+            </div>
+            <p class="criterion-description">{{ criterion.description }}</p>
+            {% if criterion.grading_notes %}
+            <p style="color: #718096; font-size: 0.875rem; margin-top: 0.5rem; font-style: italic;">
+                Note: {{ criterion.grading_notes }}
+            </p>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div style="background: white; padding: 1rem; border-radius: 6px; margin-top: 1rem; text-align: right;">
+            <strong style="font-size: 1.125rem; color: #2d3748;">
+                Total Points: {{ criteria|length }} criteria
+            </strong>
+        </div>
+    </div>
+    {% elif assignment.rubric_file %}
+    <div style="margin-bottom: 2rem;">
+        <h3 style="color: #2d3748; margin-bottom: 1rem;">Rubric File</h3>
+        <p>
+            <a href="{{ assignment.rubric_file.url }}" target="_blank" 
+               style="color: #4299e1; text-decoration: none; font-weight: 600;">
+                {{ assignment.rubric_file.name|slice:"8:" }}
+            </a>
+        </p>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e2e8f0;">
+        <a href="{% url 'index' %}" class="btn btn-primary">Create Another Assignment</a>
+    </div>
+</div>
+{% endblock %}
+

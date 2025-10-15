@@ -1,0 +1,114 @@
+{% extends 'assignments/base.html' %}
+
+{% block title %}Create Assignment{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Create New Assignment</h2>
+    <p style="color: #718096; margin-bottom: 2rem;">
+        Fill in the details below. The AI will analyze your answer key and generate a detailed rubric automatically.
+    </p>
+
+    <form method="POST" action="{% url 'create_assignment' %}" enctype="multipart/form-data" id="assignmentForm">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="title">Assignment Title *</label>
+            <input type="text" id="title" name="title" required 
+                   placeholder="e.g., Midterm Exam - Calculus II">
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea id="description" name="description" required 
+                      placeholder="Describe the assignment objectives, topics covered, and any special instructions..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="answer_key">Answer Key *</label>
+            <input type="file" id="answer_key" name="answer_key" required 
+                   accept=".pdf,.png,.jpg,.jpeg,.txt">
+            <small style="color: #718096; display: block; margin-top: 0.5rem;">
+                Supported formats: PDF, PNG, JPG, TXT
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label>Rubric Option *</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="ai_generated" name="rubric_type" 
+                           value="ai_generated" checked>
+                    <label for="ai_generated" style="margin: 0; font-weight: normal;">
+                        Generate with AI <span class="badge">Recommended</span>
+                    </label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="uploaded" name="rubric_type" value="uploaded">
+                    <label for="uploaded" style="margin: 0; font-weight: normal;">
+                        Upload Existing Rubric
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" id="rubricUploadSection">
+            <label for="rubric_file">Rubric File</label>
+            <input type="file" id="rubric_file" name="rubric_file" 
+                   accept=".json,.txt,.pdf">
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <span id="submitText">Create Assignment</span>
+                <span id="submitLoading" class="loading" style="display: none;">Creating</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if assignments %}
+<div class="card">
+    <h2>Recent Assignments</h2>
+    <div class="assignment-list">
+        {% for assignment in assignments %}
+        <div class="assignment-item" onclick="window.location.href='{% url 'assignment_detail' assignment.pk %}'">
+            <h3>{{ assignment.title }}</h3>
+            <p class="assignment-meta">
+                Created {{ assignment.created_at|date:"M d, Y" }}
+                {% if assignment.rubric_type == 'ai_generated' %}
+                    <span class="badge">AI Rubric</span>
+                {% endif %}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<script>
+    // Toggle rubric upload section
+    document.querySelectorAll('input[name="rubric_type"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const uploadSection = document.getElementById('rubricUploadSection');
+            const rubricFileInput = document.getElementById('rubric_file');
+            
+            if (this.value === 'uploaded') {
+                uploadSection.style.display = 'block';
+                rubricFileInput.required = true;
+            } else {
+                uploadSection.style.display = 'none';
+                rubricFileInput.required = false;
+            }
+        });
+    });
+
+    // Form submission loading state
+    document.getElementById('assignmentForm').addEventListener('submit', function() {
+        document.getElementById('submitText').style.display = 'none';
+        document.getElementById('submitLoading').style.display = 'inline';
+        document.getElementById('submitBtn').disabled = true;
+    });
+</script>
+{% endblock %}
+
